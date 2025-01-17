@@ -1,0 +1,28 @@
+{
+  "name": "wordgriddle-utilities",
+  "version": "1.0.0",
+  "description": "Utility features for wordgriddle",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Motivesoft/wordgriddle-utilities.git"
+  },
+  "keywords": [
+    "word",
+    "grid",
+    "wordgriddle"
+  ],
+  "author": "Ian Brown",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Motivesoft/wordgriddle-utilities/issues"
+  },
+  "homepage": "https://github.com/Motivesoft/wordgriddle-utilities#readme",
+  "dependencies": {
+    "commander": "^13.0.0",
+    "readline-sync": "^1.4.10"
+  }
+}
