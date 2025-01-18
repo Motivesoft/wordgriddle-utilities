@@ -221,6 +221,8 @@ function findInGrid(grid) {
         index++;
     }
 
+    console.log(JSON.stringify(deDupArray));
+
     return deDupArray;
 }
 
@@ -235,7 +237,7 @@ function findWordsFromPosition(grid, row, col, wordsFound, visitedCoordinates, c
 
     // Create a string representation of row and column to act as a unique coordinate
     // Add a separator so we can split them later
-    const coordinate = `${row},${col}`;
+    const coordinate = `${row}x${col}`;
 
     // Don't loop back over ourselves
     if (visitedCoordinates.has(coordinate)) {
@@ -257,7 +259,7 @@ function findWordsFromPosition(grid, row, col, wordsFound, visitedCoordinates, c
 
     if (currentWord.length >= 4 && dictionary.has(currentWord))
     {
-        const path = Array.from(visitedCoordinates).join('-');
+        const path = Array.from(visitedCoordinates).join(' ');
         
         // Store the word and the path taken to form it
         // We will prune duplicate words (with different paths) later
