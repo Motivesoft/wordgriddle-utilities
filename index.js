@@ -165,16 +165,21 @@ function findInGrid(grid) {
 
     // Iterate over the grid, letter by letter, and find words from each one
     for( var rowIndex = 0; rowIndex < grid.length; rowIndex++ ) {
-        console.log(`Row: ${rowIndex} -> ${grid[rowIndex]}`);
         for( var columnIndex = 0; columnIndex < grid[rowIndex].length; columnIndex++ ) {
-            console.log(`Column: ${columnIndex} -> ${grid[rowIndex][columnIndex]}`);
-
             findWordsFromPosition(grid, rowIndex, columnIndex, wordsFound, new Set(), "");
         }
     }
 
+    // Sort the found words array by length and alphabetical within that
+    const sorted = Array.from(wordsFound).sort((a, b) => {
+        if (a.length === b.length) {
+            return a.localeCompare(b);
+        }
+        return a.length - b.length;
+    });
+    
     // Return this to the top and (optionally) write to a file?
-    console.log(wordsFound);
+    console.log(`${sorted}`);
 }
 
 // Using grid(rowIndex,columnIndex), search for words
