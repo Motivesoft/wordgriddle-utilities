@@ -155,7 +155,11 @@ function findWords(grid) {
             console.error('Error reading dictionary:', err);
         } else {
             console.log(`Dictionary ${dictionary.size} words`);
-            findInGrid(grid);
+            const words = findInGrid(grid);
+
+            // Return this to the top and (optionally) write to a file?
+            console.log(`Words: ${words}`);
+            console.log(` : ${words.length} words`);
         }
     });
 }
@@ -217,9 +221,7 @@ function findInGrid(grid) {
         index++;
     }
 
-    // // Return this to the top and (optionally) write to a file?
-    console.log(`List: ${deDupArray}`);
-    console.log(` : ${deDupArray.length} words`);
+    return deDupArray;
 }
 
 // Using grid(rowIndex,columnIndex), search for words
