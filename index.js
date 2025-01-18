@@ -187,10 +187,10 @@ function findInGrid(grid) {
     // Find all duplicated words (same word found by different path) and simplify down to one (randomly)
     const deDupArray = new Array();
     var index = 0;
-    while (index < wordsFound.length-1) {
+    while (index < wordsFound.length) {
         const [word,path] = wordsFound[index];
         var lookAhead = index;
-        while (lookAhead < wordsFound.length) {
+        while (lookAhead < wordsFound.length-1) {
             const [nextWord,nextPath] = wordsFound[lookAhead+1];
             if (word !== nextWord) {
                 break;
