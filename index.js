@@ -161,7 +161,7 @@ function findWords(grid) {
 }
 
 function findInGrid(grid) {
-    const wordsFound = new Set();
+    const wordsFound = new Array();
 
     // Iterate over the grid, letter by letter, and find words from each one
     for( var rowIndex = 0; rowIndex < grid.length; rowIndex++ ) {
@@ -170,28 +170,35 @@ function findInGrid(grid) {
         }
     }
 
-    // Sort the found words array by length and alphabetical within that
+    console.log(`Un-de-duplicated: ${wordsFound.length}`);
+    console.log(`List: ${wordsFound}`);
+
+    //Sort the found words array by length and alphabetical within that
     const sorted = Array.from(wordsFound).sort((a, b) => {
-        if (a.length === b.length) {
-            return a.localeCompare(b);
+        const itemA = a[0];
+        const itemB = b[0];
+        if (itemA.length === itemB.length) {
+            return itemA.localeCompare(itemB);
         }
-        return a.length - b.length;
+        return itemA.length - itemB.length;
     });
+    console.log(`Sorted: ${sorted}`);
     
-    // Return this to the top and (optionally) write to a file?
-    console.log(`${sorted}`);
+    // // Return this to the top and (optionally) write to a file?
+    // console.log(`${sorted}`);
 }
 
 // Using grid(rowIndex,columnIndex), search for words
 // Call this recursively, building visited and currentWord as we go
 // Add found words to a set as we may find duplicates
-function findWordsFromPosition(grid, row, col, words, visitedCoordinates, currentWord) {
+function findWordsFromPosition(grid, row, col, wordsFound, visitedCoordinates, currentWord) {
     // Bounds checking
     if (row < 0 || row >= grid.length || col < 0 || col >= grid[row].length) {
         return;
     }
 
     // Create a string representation of row and column to act as a unique coordinate
+    // Add a separator so we can split them later
     const coordinate = `${row},${col}`;
 
     // Don't loop back over ourselves
@@ -214,23 +221,27 @@ function findWordsFromPosition(grid, row, col, words, visitedCoordinates, curren
 
     if (currentWord.length >= 4 && dictionary.has(currentWord))
     {
-        words.add(currentWord);
+        const path = Array.from(visitedCoordinates).join('-');
+        
+        // Store the word and the path taken to form it
+        // We will prune duplicate words (with different paths) later
+        wordsFound.push([currentWord, path]);
     }
 
     // Constrain the algorithm to avoid creating words that are too long
     if (currentWord.length < longestWordLength && wordFragments.has(currentWord))
     {
         // Cross
-        findWordsFromPosition(grid, row - 1, col, words, visitedCoordinates, currentWord);
-        findWordsFromPosition(grid, row + 1, col, words, visitedCoordinates, currentWord);
-        findWordsFromPosition(grid, row, col - 1, words, visitedCoordinates, currentWord);
-        findWordsFromPosition(grid, row, col + 1, words, visitedCoordinates, currentWord);
+        findWordsFromPosition(grid, row - 1, col, wordsFound, visitedCoordinates, currentWord);
+        findWordsFromPosition(grid, row + 1, col, wordsFound, visitedCoordinates, currentWord);
+        findWordsFromPosition(grid, row, col - 1, wordsFound, visitedCoordinates, currentWord);
+        findWordsFromPosition(grid, row, col + 1, wordsFound, visitedCoordinates, currentWord);
 
         // Diagonal
-        findWordsFromPosition(grid, row - 1, col - 1, words, visitedCoordinates, currentWord);
-        findWordsFromPosition(grid, row - 1, col + 1, words, visitedCoordinates, currentWord);
-        findWordsFromPosition(grid, row + 1, col - 1, words, visitedCoordinates, currentWord);
-        findWordsFromPosition(grid, row + 1, col + 1, words, visitedCoordinates, currentWord);
+        findWordsFromPosition(grid, row - 1, col - 1, wordsFound, visitedCoordinates, currentWord);
+        findWordsFromPosition(grid, row - 1, col + 1, wordsFound, visitedCoordinates, currentWord);
+        findWordsFromPosition(grid, row + 1, col - 1, wordsFound, visitedCoordinates, currentWord);
+        findWordsFromPosition(grid, row + 1, col + 1, wordsFound, visitedCoordinates, currentWord);
     }
 
     visitedCoordinates.delete(coordinate);
