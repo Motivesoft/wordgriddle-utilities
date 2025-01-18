@@ -170,11 +170,8 @@ function findInGrid(grid) {
         }
     }
 
-    console.log(`Un-de-duplicated: ${wordsFound.length}`);
-    console.log(`List: ${wordsFound}`);
-
     //Sort the found words array by length and alphabetical within that
-    const sorted = Array.from(wordsFound).sort((a, b) => {
+    const sorted = wordsFound.sort((a, b) => {
         const itemA = a[0];
         const itemB = b[0];
         if (itemA.length === itemB.length) {
@@ -182,10 +179,47 @@ function findInGrid(grid) {
         }
         return itemA.length - itemB.length;
     });
-    console.log(`Sorted: ${sorted}`);
-    
+
+    // Find all duplicated words (same word found by different path) and simplify down to one (randomly)
+    const deDupArray = new Array();
+    var index = 0;
+    while (index < wordsFound.length-1) {
+        const [word,path] = wordsFound[index];
+        var lookAhead = index;
+        while (lookAhead < wordsFound.length) {
+            const [nextWord,nextPath] = wordsFound[lookAhead+1];
+            if (word !== nextWord) {
+                break;
+            }
+
+            lookAhead++;
+        }
+
+        if (lookAhead === index) {
+            // No duplicates - simply add it to the list
+            deDupArray.push([word,path]);
+        } else {
+            // Multiple ways to spell this word.
+            const matches = lookAhead-index+1;
+            
+            // Eliminate all but one of the ways
+            // Randomise the one we choose (e.g. 4 matches means get a random number between 0-3 and add it to index)
+            const elementToKeep = index + Math.floor(Math.random() * (matches));
+
+            // Add the chosen one to the list
+            deDupArray.push(wordsFound[elementToKeep]);
+            
+            // Move past the matching words
+            index = lookAhead;
+        }
+
+        // Move on to the next word
+        index++;
+    }
+
     // // Return this to the top and (optionally) write to a file?
-    // console.log(`${sorted}`);
+    console.log(`List: ${deDupArray}`);
+    console.log(` : ${deDupArray.length} words`);
 }
 
 // Using grid(rowIndex,columnIndex), search for words
