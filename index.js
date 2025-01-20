@@ -8,6 +8,8 @@ const logger = require('./logger');
 
 const program = new Command();
 const dictionary = new Set();
+const bonus = new Set();
+const excluded = new Set();
 const wordFragments = new Set();
 var longestWordLength = 0;
 
@@ -150,16 +152,48 @@ function findFunctionImpl(filename) {
 
 // Search a grid (2D array) for words. The array *should* be square
 function findWords(grid) {
+    const bonusWords = fs.readFileSync('./data/bonus.txt', 'utf-8');
+    bonusWords.split('\n').map(line => line.trim()).forEach((bonusWord) => {
+        bonus.add(bonusWord);
+    });
+
+    const excludedWords = fs.readFileSync('./data/excluded.txt', 'utf-8');
+    excludedWords.split('\n').map(line => line.trim()).forEach((excludedWord) => {
+        excluded.add(excludedWord);
+    });
+
     readDictionary('./data/dictionary.txt', (err) => {
         if (err) {
             console.error('Error reading dictionary:', err);
         } else {
             console.log(`Dictionary ${dictionary.size} words`);
-            const words = findInGrid(grid);
+            const allWords = findInGrid(grid);
+
+            const foundWords = [];
+            const bonusWords = [];
+            const excludedWords = [];
+
+            // allWords consists of word and path pairs. Split them by category
+            allWords.forEach(([word, path]) => {
+                if (excluded.has(word.word)) {
+                    excludedWords.push([word, path]);
+                } else if (bonus.has(word)) {
+                    bonusWords.push([word, path]);
+                } else {
+                    foundWords.push([word, path]);
+                }
+            });
 
             // Return this to the top and (optionally) write to a file?
-            console.log(`Words: ${words}`);
-            console.log(` : ${words.length} words`);
+            console.log(`All  : ${allWords}`);
+            console.log(` : ${allWords.length} words`);
+
+            console.log(`Main : ${JSON.stringify(foundWords)}`);
+            console.log(` : ${foundWords.length} words`);
+            console.log(`Bonus: ${JSON.stringify(bonusWords)}`);
+            console.log(` : ${bonusWords.length} words`);
+            console.log(`Bad  : ${JSON.stringify(excludedWords)}`);
+            console.log(` : ${excludedWords.length} words`);
         }
     });
 }
@@ -168,8 +202,8 @@ function findInGrid(grid) {
     const wordsFound = new Array();
 
     // Iterate over the grid, letter by letter, and find words from each one
-    for( var rowIndex = 0; rowIndex < grid.length; rowIndex++ ) {
-        for( var columnIndex = 0; columnIndex < grid[rowIndex].length; columnIndex++ ) {
+    for (var rowIndex = 0; rowIndex < grid.length; rowIndex++) {
+        for (var columnIndex = 0; columnIndex < grid[rowIndex].length; columnIndex++) {
             findWordsFromPosition(grid, rowIndex, columnIndex, wordsFound, new Set(), "");
         }
     }
@@ -188,10 +222,10 @@ function findInGrid(grid) {
     const deDupArray = new Array();
     var index = 0;
     while (index < wordsFound.length) {
-        const [word,path] = wordsFound[index];
+        const [word, path] = wordsFound[index];
         var lookAhead = index;
-        while (lookAhead < wordsFound.length-1) {
-            const [nextWord,nextPath] = wordsFound[lookAhead+1];
+        while (lookAhead < wordsFound.length - 1) {
+            const [nextWord, nextPath] = wordsFound[lookAhead + 1];
             if (word !== nextWord) {
                 break;
             }
@@ -201,18 +235,18 @@ function findInGrid(grid) {
 
         if (lookAhead === index) {
             // No duplicates - simply add it to the list
-            deDupArray.push([word,path]);
+            deDupArray.push([word, path]);
         } else {
             // Multiple ways to spell this word.
-            const matches = lookAhead-index+1;
-            
+            const matches = lookAhead - index + 1;
+
             // Eliminate all but one of the ways
             // Randomise the one we choose (e.g. 4 matches means get a random number between 0-3 and add it to index)
             const elementToKeep = index + Math.floor(Math.random() * (matches));
 
             // Add the chosen one to the list
             deDupArray.push(wordsFound[elementToKeep]);
-            
+
             // Move past the matching words
             index = lookAhead;
         }
@@ -220,8 +254,6 @@ function findInGrid(grid) {
         // Move on to the next word
         index++;
     }
-
-    console.log(JSON.stringify(deDupArray));
 
     return deDupArray;
 }
@@ -236,8 +268,11 @@ function findWordsFromPosition(grid, row, col, wordsFound, visitedCoordinates, c
     }
 
     // Create a string representation of row and column to act as a unique coordinate
-    // Add a separator so we can split them later
-    const coordinate = `${row}x${col}`;
+    // Wrap the values in a string that makes them easy to match later - e.g. so the web page
+    // can generate its own coordinate and look for it in a list associated with the puzzle in play
+    //const coordinate = `[${row}x${col}]`;
+    const index = (row * grid[row].length) + col;
+    const coordinate = `[${index}]`;
 
     // Don't loop back over ourselves
     if (visitedCoordinates.has(coordinate)) {
@@ -257,18 +292,17 @@ function findWordsFromPosition(grid, row, col, wordsFound, visitedCoordinates, c
 
     currentWord += currentLetter.toLowerCase();
 
-    if (currentWord.length >= 4 && dictionary.has(currentWord))
-    {
-        const path = Array.from(visitedCoordinates).join(' ');
-        
+    if (currentWord.length >= 4 && dictionary.has(currentWord)) {
+        // Coords are wrapped (above), so don't need any other separator
+        const path = Array.from(visitedCoordinates).join('');
+
         // Store the word and the path taken to form it
         // We will prune duplicate words (with different paths) later
         wordsFound.push([currentWord, path]);
     }
 
     // Constrain the algorithm to avoid creating words that are too long
-    if (currentWord.length < longestWordLength && wordFragments.has(currentWord))
-    {
+    if (currentWord.length < longestWordLength && wordFragments.has(currentWord)) {
         // Cross
         findWordsFromPosition(grid, row - 1, col, wordsFound, visitedCoordinates, currentWord);
         findWordsFromPosition(grid, row + 1, col, wordsFound, visitedCoordinates, currentWord);
