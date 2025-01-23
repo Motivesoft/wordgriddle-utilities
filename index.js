@@ -109,7 +109,7 @@ function gridFunctionImpl(filename) {
                     console.warn(`Line length is inconsistent (${line.length} instead of ${lineLength})`);
                 }
 
-                writeStream.write(line + '\n');
+                writeStream.write(line.toUpperCase() + '\n');
                 lineCount++;
 
                 promptAndWrite();
@@ -169,7 +169,7 @@ function findWords(grid) {
             console.log(`Dictionary ${dictionary.size} words`);
             const allWords = findInGrid(grid);
 
-            const foundWords = [];
+            const regularWords = [];
             const bonusWords = [];
             const excludedWords = [];
 
@@ -180,20 +180,36 @@ function findWords(grid) {
                 } else if (bonus.has(word)) {
                     bonusWords.push([word, path]);
                 } else {
-                    foundWords.push([word, path]);
+                    regularWords.push([word, path]);
                 }
             });
 
-            // Return this to the top and (optionally) write to a file?
-            console.log(`All  : ${allWords}`);
-            console.log(` : ${allWords.length} words`);
+            // Display the results - may be piped to file
 
-            console.log(`Main : ${JSON.stringify(foundWords)}`);
-            console.log(` : ${foundWords.length} words`);
-            console.log(`Bonus: ${JSON.stringify(bonusWords)}`);
-            console.log(` : ${bonusWords.length} words`);
-            console.log(`Bad  : ${JSON.stringify(excludedWords)}`);
-            console.log(` : ${excludedWords.length} words`);
+            // Grid letters
+            let letters = '';
+            grid.forEach((line) => {
+                line.forEach((letter) => {
+                    letters += letter;
+                });
+            });
+            console.log(`Letters : ${letters}`);
+            
+            // All words
+            console.log(`All ${allWords.length} words:`);
+            allWords.forEach(([word,path]) => {
+                console.log(word);
+            });
+
+            // Word list counts
+            console.log(` : ${regularWords.length} regular words`);
+            console.log(` : ${bonusWords.length} bonus words`);
+            console.log(` : ${excludedWords.length} excluded words`);
+
+            // Word lists as JSON
+            console.log(`${JSON.stringify({words: regularWords})}`);
+            console.log(`${JSON.stringify({bonusWords: bonusWords})}`);
+            console.log(`${JSON.stringify({excludedWords: excludedWords})}`);
         }
     });
 }
