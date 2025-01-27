@@ -46,6 +46,13 @@ const functions = {
         } else {
             findFunction(filename);
         }
+    },
+    diff: (allWords, targetWords) => {
+        if (allWords === undefined || targetWords === undefined) {
+            console.error("Requires two files; all words in puzzle, and target words in puzzle");
+        } else {
+            diffFunction(allWords, targetWords);
+        }
     }
     // Add more functions here
 };
@@ -80,6 +87,14 @@ function findFunction(filename) {
         console.log('File not found.');
     }
     rl.close();
+}
+
+
+function diffFunction(allWords, targetWords) {
+    const result = diffFunctionImpl(allWords, targetWords);
+    result.forEach((word) => {
+        console.log(word);
+    });
 }
 
 // Function to prompt the user and write to the file
@@ -194,10 +209,10 @@ function findWords(grid) {
                 });
             });
             console.log(`Letters : ${letters}`);
-            
+
             // All words
             console.log(`All ${allWords.length} words:`);
-            allWords.forEach(([word,path]) => {
+            allWords.forEach(([word, path]) => {
                 console.log(word);
             });
 
@@ -207,9 +222,9 @@ function findWords(grid) {
             console.log(` : ${excludedWords.length} excluded words`);
 
             // Word lists as JSON
-            console.log(`${JSON.stringify({words: regularWords})}`);
-            console.log(`${JSON.stringify({bonusWords: bonusWords})}`);
-            console.log(`${JSON.stringify({excludedWords: excludedWords})}`);
+            console.log(`${JSON.stringify({ words: regularWords })}`);
+            console.log(`${JSON.stringify({ bonusWords: bonusWords })}`);
+            console.log(`${JSON.stringify({ excludedWords: excludedWords })}`);
         }
     });
 }
@@ -364,4 +379,21 @@ function readDictionary(filename, callback) {
         // Pass the result to the callback
         callback(null);
     });
+}
+
+// Given a list of all words and target words, return words only in 'all words'
+// Essentially this extracts bonus words
+function diffFunctionImpl(file1, file2) {
+    try {
+        const content1 = fs.readFileSync(file1, 'utf8');
+        const content2 = fs.readFileSync(file2, 'utf8');
+
+        const list1 = content1.split('\n').map(word => word.trim());
+        const list2 = content2.split('\n').map(word => word.trim());
+
+        return list1.filter(word => !list2.includes(word));
+    } catch (err) {
+        console.error('Error reading files:', err);
+        return [];
+    }
 }
